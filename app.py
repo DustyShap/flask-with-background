@@ -29,6 +29,9 @@ def permutation_count(s):
     count = 0
     for p in permutations(s):
         count += 1
+        if count % 10000 == 0:
+            job_state["count"] = count
+            r.set(s, json.dumps(job_state))
 
     job_state["status"] = "complete"
     job_state["count"] = count
