@@ -1,4 +1,5 @@
 import time
+import json
 from flask import Flask, render_template, request
 from itertools import permutations
 
@@ -20,10 +21,18 @@ celery.conf.update(app.config)
 ## --- Celery Worker
 @celery.task
 def permutation_count(s):
+    job_state = json.loads(r.get(s).decode('utf-8'))
+
+    job_state["status"] = "in progress"
+    r.set(s, json.dumps(job_state))
+
     count = 0
     for p in permutations(s):
         count += 1
-    r.set(s, count)
+
+    job_state["status"] = "complete"
+    job_state["count"] = count
+    r.set(s, json.dumps(job_state))
 
 ## --- Web Server
 @app.route("/")
@@ -36,14 +45,21 @@ def permute():
 
     was_cached = True
     if r.get(text_input) is None:
+        r.set(text_input, json.dumps({
+            "status": "not started",
+            "count": "0"
+        }))
         permutation_count.delay(text_input)
         was_cached = False
 
     count = None
     while True:
-        count = r.get(text_input)
-        if count is not None:
-            count = int(count)
+        message = r.get(text_input)
+        status = None
+        if message is not None:
+            job_state = json.loads(message.decode('utf-8'))
+            count = int(job_state["count"])
+            status = job_state["status"]
             break
         time.sleep(.3)
 
@@ -51,5 +67,5 @@ def permute():
             'permute.html',
             number_of_permutations=count,
             text_input=text_input,
-            was_cached=was_cached
+            job_state=status
             )

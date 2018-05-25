@@ -14,7 +14,7 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
   </head>
   <body>
-    There were {{number_of_permutations}} for the string {{text_input}} {% if was_cached %}(cached){% endif %}
+    There were {{number_of_permutations}} for the string {{text_input}} ({{job_state}})
     <form id='submit_name' method='POST' action='/permute'>
 			<input name='text' type='text'>
 			<input type='submit' id='submit'>
